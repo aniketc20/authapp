@@ -1,0 +1,8 @@
+<html>
+    <h3>Welcome, {{ user.first_name }}</h3>
+    <h4>You are logged in as, {{ user.email }}</h4>
+    {% for message in messages %}
+        <div>{{ message }} !!</div>
+    {% endfor %}
+    <a class="p-2 text-dark" href="{% url 'logout' %}">Logout</a>
+</html>

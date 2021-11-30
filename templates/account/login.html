@@ -1,0 +1,122 @@
+{% load socialaccount %}
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+
+    <title>Django O-Auth</title>
+  </head>
+  <body>
+    <div id="myModal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Registration</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    {% for message in messages %}
+                        <div>{{ message }} !!</div>
+                    {% endfor %}
+                    <form id="signup" method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <input type="text" name="first_name" id="first_name" class="form-control" placeholder="Name">
+                        </div>
+                        <div class="form-group">
+                            <input type="email" name="email" id="email" class="form-control" placeholder="Email Address">
+                        </div>
+                        <div class="form-group">
+                            <input type="password" class="form-control" placeholder="Password" name="password1" id="password1">
+                        </div>
+                        <div class="form-group">
+                            <input type="password" class="form-control" placeholder="Re-enter Password" name="password2" id="password2">
+                        </div>
+                        <p id="errors" style="color:red"></p>
+                        <button type="submit" class="btn btn-primary">Sign-up</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container text-dark mt-5">
+        <div class="row justify-content-md-center">
+          <div class="col-md-5 bg-grey p-3">
+            <form id="login" method="POST">
+                {% csrf_token %}
+                <h1 class="h3 mb-3">Please sign in</h1>
+                <label for="id_email" class="sr-only">Email address</label>
+                <input type="email" placeholder="Email" class="form-control" name="email" id="id_email" required>
+                <label for="id_password" class="sr-only">Password</label>
+                <input type="password" placeholder="Password" class="form-control" name="password" id="id_password" required>
+                <p id="message"></p>
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+                <a href="{% provider_login_url 'google' %}" class="btn btn btn-danger btn-lg btn-block" role="button" aria-pressed="true">Sign in with Google</a>
+                <a class="btn btn btn-danger btn-lg btn-block" data-toggle="modal" href="#myModal">Register</a>
+              </form>
+          </div>
+        </div>
+      </div>
+      <script>
+        {% include 'ajax_setup.js' %}
+        '{% if messages %}'
+            '{% for message in messages %}'
+                if ('{{ message }}' == 'Account does not exist. Please register')
+                {
+                    $("#myModal").modal('show');
+                }
+                else
+                {
+                    $("#message").text('{{ message }}');
+                }
+            
+            '{% endfor %}'
+        '{% endif %}'
+        $("#signup").submit(function (e)
+	    {
+		e.preventDefault();
+		var serializedData = $(this).serialize();
+		console.log(serializedData);
+		$.ajax({
+            type: 'POST',
+            data:
+                serializedData,
+                'ajax':1,
+            success: function (data) {
+				console.log(data);
+                $("#myModal").modal('hide');
+                $('#message').text(data['response']);
+            },
+            error: function (error) {
+                console.log(error['responseJSON']['error']);
+                let email_error = error['responseJSON']['error']['email'];
+                let password_error = error['responseJSON']['error']['password2'];
+                let txt = "";
+                if (email_error)
+                {
+                    email_error.forEach(myFunction);
+                }
+                if (password_error)
+                {
+                    password_error.forEach(myFunction);
+                }
+                document.getElementById("errors").innerHTML = txt;
+                function myFunction(value, index, array) {
+                    txt += value + "<br>"; 
+                }
+            }
+        });
+	});
+    $('#close').on('click', function(){
+      $('#myModal').modal('hide');
+    });
+        </script>
+  </body>
+</html>
