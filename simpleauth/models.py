@@ -16,9 +16,10 @@ class MyAccountManager(BaseUserManager):
         user.save(using=self.db)
         return user
 
-    def create_superuser(self, email, password):
+    def create_superuser(self, first_name, email, password):
         user = self.create_user(
             email=self.normalize_email(email),
+            first_name=first_name,
             password=password,
         )
         user.is_admin = True
@@ -40,7 +41,7 @@ class Account(AbstractUser):
     is_superuser = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['first_name']
     objects = MyAccountManager()
 
     def has_perm(self, perm, obj=None):
